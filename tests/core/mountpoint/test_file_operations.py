@@ -19,6 +19,7 @@ def test_file_operations(tmpdir, caplog, hypothesis_settings, mountpoint_service
     class FileOperationsStateMachine(RuleBasedStateMachine):
         @initialize()
         def init(self):
+            print("***** init *****")
             nonlocal tentative
             tentative += 1
             caplog.clear()
@@ -38,16 +39,19 @@ def test_file_operations(tmpdir, caplog, hypothesis_settings, mountpoint_service
             self.fd = os.open(self.file_path, os.O_RDWR | os.O_CREAT)
 
         def teardown(self):
+            print("***** teardown *****")
             self.mountpoint_service.stop()
 
         @rule(size=st.integers(min_value=0, max_value=BALLPARK))
         def read(self, size):
+            print("read", size)
             expected_data = os.read(self.oracle_fd, size)
             data = os.read(self.fd, size)
             assert data == expected_data
 
         @rule(content=st.binary(max_size=BALLPARK))
         def write(self, content):
+            print("write", content)
             expected_ret = os.write(self.oracle_fd, content)
             ret = os.write(self.fd, content)
             assert ret == expected_ret
@@ -57,6 +61,7 @@ def test_file_operations(tmpdir, caplog, hypothesis_settings, mountpoint_service
             seek_type=st.one_of(st.just(os.SEEK_SET), st.just(os.SEEK_CUR), st.just(os.SEEK_END)),
         )
         def seek(self, length, seek_type):
+            print("seek", length, seek_type)
             if seek_type != os.SEEK_END:
                 length = abs(length)
             try:
@@ -73,22 +78,26 @@ def test_file_operations(tmpdir, caplog, hypothesis_settings, mountpoint_service
 
         @rule(length=st.integers(min_value=0, max_value=BALLPARK))
         def truncate(self, length):
+            print("truncate", length)
             os.ftruncate(self.fd, length)
             os.ftruncate(self.oracle_fd, length)
 
         @rule()
         def sync(self):
+            print("sync")
             os.fsync(self.fd)
             os.fsync(self.oracle_fd)
 
         @rule()
         def stat(self):
+            print("stat")
             stat = os.fstat(self.fd)
             oracle_stat = os.fstat(self.oracle_fd)
             assert stat.st_size == oracle_stat.st_size
 
         @rule()
         def reopen(self):
+            print("reopen")
             os.close(self.fd)
             self.fd = os.open(self.file_path, os.O_RDWR)
             os.close(self.oracle_fd)

@@ -131,7 +131,7 @@ async def winfsp_mountpoint_runner(
     # Volume label is limited to 32 WCHAR characters, so force the label to
     # ascii to easily enforce the size.
     volume_label = (
-        unicodedata.normalize("NFKD", f"{workspace_name.capitalize()}")
+        unicodedata.normalize("NFKD", workspace_name.capitalize())
         .encode("ascii", "ignore")[:32]
         .decode("ascii")
     )
