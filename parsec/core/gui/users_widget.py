@@ -2,7 +2,7 @@
 
 import pendulum
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer
-from PyQt5.QtWidgets import QWidget, QMenu, QGraphicsDropShadowEffect
+from PyQt5.QtWidgets import QWidget, QMenu, QGraphicsDropShadowEffect, QLabel
 from PyQt5.QtGui import QColor
 
 from parsec.api.protocol import UserID
@@ -228,9 +228,8 @@ class UsersWidget(QWidget, Ui_UsersWidget):
             button=user_button,
         )
 
-    def on_list_success(self, job):
+    def _flush_users_list(self):
         self.users = []
-
         while self.layout_users.count() != 0:
             item = self.layout_users.takeAt(0)
             if item:
@@ -239,6 +238,8 @@ class UsersWidget(QWidget, Ui_UsersWidget):
                 w.hide()
                 w.setParent(None)
 
+    def on_list_success(self, job):
+        self._flush_users_list()
         current_user = self.core.device.user_id
         for user_info, user_revoked_info in job.ret:
             self.add_user(
@@ -253,9 +254,14 @@ class UsersWidget(QWidget, Ui_UsersWidget):
         status = job.status
         if status == "offline":
             return
+        elif status == "error":
+            self.initialized = False
+            self._flush_users_list()
+            label = QLabel(_("TEXT_USER_LIST_RETRIEVABLE_FAILURE"))
+            label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.layout_users.addWidget(label)
+            return
         else:
-            if status == "error":
-                self.initialized = False
             errmsg = _("TEXT_USER_LIST_RETRIEVABLE_FAILURE")
         show_error(self, errmsg, exception=job.exc)
 

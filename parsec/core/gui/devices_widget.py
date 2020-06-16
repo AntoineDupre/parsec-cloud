@@ -1,7 +1,7 @@
 # Parsec Cloud (https://parsec.cloud) Copyright (c) AGPLv3 2019 Scille SAS
 
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer
-from PyQt5.QtWidgets import QWidget, QMenu, QGraphicsDropShadowEffect
+from PyQt5.QtWidgets import QWidget, QMenu, QGraphicsDropShadowEffect, QLabel
 from PyQt5.QtGui import QColor
 
 from parsec.core.gui.trio_thread import JobResultError, ThreadSafeQtSignal, QtToTrioJob
@@ -9,7 +9,6 @@ from parsec.core.gui.lang import translate as _
 from parsec.core.gui.password_change_widget import PasswordChangeWidget
 from parsec.core.gui.flow_layout import FlowLayout
 from parsec.core.gui.ui.devices_widget import Ui_DevicesWidget
-from parsec.core.gui.custom_dialogs import show_error
 from parsec.core.gui.invite_device_widget import InviteDeviceWidget
 from parsec.core.gui.ui.device_button import Ui_DeviceButton
 from parsec.core.remote_devices_manager import (
@@ -132,11 +131,14 @@ class DevicesWidget(QWidget, Ui_DevicesWidget):
         button.show()
         self.devices.append(device_name)
 
+    def _flush_devices_list(self):
+        self.devices = []
+        self.layout_devices.clear()
+
     def on_list_success(self, job):
         devices = job.ret
         current_device = self.core.device
-        self.devices = []
-        self.layout_devices.clear()
+        self._flush_devices_list()
         for device in devices:
             device_name = device.device_id.device_name
             self.add_device(
@@ -148,9 +150,11 @@ class DevicesWidget(QWidget, Ui_DevicesWidget):
     def on_list_error(self, job):
         status = job.status
         if status == "error":
+            self._flush_devices_list()
             self.initialized = False
-            errmsg = _("TEXT_USER_LIST_RETRIEVABLE_FAILURE")
-            show_error(self, errmsg, exception=job.exc)
+            label = QLabel(_("TEXT_USER_LIST_RETRIEVABLE_FAILURE"))
+            label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.layout_devices.addWidget(label)
 
     def reset(self):
         self.jobs_ctx.submit_job(
