@@ -41,6 +41,8 @@ from parsec.core.fs.exceptions import (
     FSNotADirectoryError,
 )
 
+from parsec.core.fs.workspacefilesfs.workspacefilesfs import WorkspaceFilesFS
+
 AnyPath = Union[FsPath, str]
 
 
@@ -345,6 +347,11 @@ class WorkspaceFS:
             return await self.transactions.fd_read(fd, size, offset)
         finally:
             await self.transactions.fd_close(fd)
+
+    async def open_file(self, path: AnyPath, mode="r"):
+        path = FsPath(path)
+        _, fd = await self.transactions.file_open(path, mode)
+        return WorkspaceFilesFS(fd, self.transactions)
 
     async def write_bytes(
         self, path: AnyPath, data: bytes, offset: int = 0, truncate: bool = True
