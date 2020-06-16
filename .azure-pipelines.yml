@@ -11,7 +11,7 @@ trigger:
 variables:
   python.version: '3.6'
   postgresql.version: '10'
-  winfsp.version: '1.7.20038-pre'
+  winfsp.version: '1.7.20123-pre'
   pytest.base_args: |
     --log-level=DEBUG \
     --durations=10 -v \
