@@ -40,7 +40,7 @@ _FILE_ASYNC_METHODS = {
 }
 
 
-class WorkspaceFilesFS:
+class WorkspaceFile:
     def __init__(self, fd, transactions):
         self._fd = fd
         self._open = None
