@@ -1,5 +1,7 @@
 # Parsec Cloud (https://parsec.cloud) Copyright (c) AGPLv3 2019 Scille SAS
 
+import os
+
 _FILE_SYNC_ATTRS = {
     "closed",
     "encoding",
@@ -43,7 +45,8 @@ _FILE_ASYNC_METHODS = {
 class WorkspaceFile:
     def __init__(self, fd, transactions):
         self._fd = fd
-        self._open = None
+        self._open = True
+        self._offset = 0
         self._transactions = transactions
 
     def __aiter__(self):
@@ -59,5 +62,34 @@ class WorkspaceFile:
     async def close(self):
         await self._transactions.fd_close(self._fd)
 
+    def closed(self):
+        return self._open is False
+
+    def tell(self):
+        return self._offset
+
+    async def seek(self, offset, whence=os.SEEK_SET):
+        if whence == os.SEEK_SET:
+            self._offset = offset
+        if whence == os.SEEK_CUR:
+            self._offset += offset
+        if whence == os.SEEK_END:
+            info = await self._transactions.fd_info(self._fd)
+            self._offset = info["size"] + offset
+        return self._offset
+
+    async def test_file_stats(self):
+        stats = await self._transactions.fd_info(self._fd)
+        return stats
+
+    async def readline(self, size=-1):
+        raise NotImplementedError
+
+    async def read(self):
+        raise NotImplementedError
+
     async def __anext__(self):
-        return await self._transactions.fd_read(self._fd, 5, 0)
+        return await self.readline()
+
+    async def write(self, data):
+        self._offset += await self._transactions.write(self._fd, data, self._offset)
