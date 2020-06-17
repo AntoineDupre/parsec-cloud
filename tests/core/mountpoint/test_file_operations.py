@@ -36,6 +36,9 @@ def test_file_operations(tmpdir, caplog, hypothesis_settings, mountpoint_service
             self.file_path = str(wpath / "bar.txt")
 
             self.oracle_fd = os.open(self.oracle_file_path, os.O_RDWR | os.O_CREAT)
+            import time
+
+            time.sleep(0.01)
             self.fd = os.open(self.file_path, os.O_RDWR | os.O_CREAT)
 
         def teardown(self):
