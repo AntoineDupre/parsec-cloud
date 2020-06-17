@@ -35,7 +35,15 @@ def test_file_operations(tmpdir, caplog, hypothesis_settings, mountpoint_service
             self.file_path = str(wpath / "bar.txt")
 
             self.oracle_fd = os.open(self.oracle_file_path, os.O_RDWR | os.O_CREAT)
-            self.fd = os.open(self.file_path, os.O_RDWR | os.O_CREAT)
+            try:
+                self.fd = os.open(self.file_path, os.O_RDWR | os.O_CREAT)
+            except OSError as exc:
+                # TODO: With WinFSP, creating a file right after starting the mountpoint
+                # sometime fail with `OSError: [Errno 22] Invalid argument: 'P:\\bar.txt'`
+                # (see https://github.com/Scille/parsec-cloud/issues/1207)
+                if os.name != "nt" or exc.errno != 22:
+                    raise
+                self.fd = os.open(self.file_path, os.O_RDWR | os.O_CREAT)
 
         def teardown(self):
             self.mountpoint_service.stop()
