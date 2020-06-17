@@ -40,18 +40,22 @@ def translate_error(event_bus, operation, path):
         yield
 
     except NTStatusError:
+        logger.exception("Winfsp exception:", operation=operation, path=path)
         raise
 
     except FSLocalOperationError as exc:
+        logger.exception("Winfsp exception:", operation=operation, path=path)
         raise NTStatusError(exc.ntstatus) from exc
 
     except FSRemoteOperationError as exc:
         event_bus.send("mountpoint.remote_error", exc=exc, operation=operation, path=path)
+        logger.exception("Winfsp exception:", operation=operation, path=path)
         raise NTStatusError(exc.ntstatus) from exc
 
     except (Cancelled, RunFinishedError) as exc:
         # WinFSP teardown operation doesn't make sure no concurrent operation
         # are running
+        logger.exception("Winfsp exception:", operation=operation, path=path)
         raise NTStatusError(NTSTATUS.STATUS_NO_SUCH_DEVICE) from exc
 
     except Exception as exc:

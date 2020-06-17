@@ -192,7 +192,7 @@ jobs:
       for i in {1..10}
       do
         echo try $i
-        py.test tests/core/mountpoint/test_file_operations.py::test_file_operations  --runmountpoint --runslow -s
+        py.test tests/core/mountpoint/test_file_operations.py::test_file_operations  --runmountpoint --runslow -s --log-cli-level=WARNING
       done
     workingDirectory: $(Agent.TempDirectory)/empty
     displayName: 'Tests mountpoint'
