@@ -133,6 +133,10 @@ class FileTransactions:
 
     # Atomic transactions
 
+    async def fd_info(self, fd: FileDescriptor) -> dict:
+        manifest = await self.local_storage.load_file_descriptor(fd)
+        return manifest.to_stats()
+
     async def fd_close(self, fd: FileDescriptor) -> None:
         # Fetch and lock
         async with self._load_and_lock_file(fd) as manifest:

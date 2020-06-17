@@ -253,6 +253,20 @@ class LocalManifest(BaseLocalData):
         )
         return reference.evolve(version=remote_manifest.version) == remote_manifest
 
+    def to_stats(self):
+        # General stats
+        stats = {
+            "id": self.id,
+            "created": self.created,
+            "updated": self.updated,
+            "base_version": self.base_version,
+            "is_placeholder": self.is_placeholder,
+            "need_sync": self.need_sync,
+            "type": "folder",
+            "children": sorted(self.children.keys()),
+        }
+        return stats
+
     # Debugging
 
     def asdict(self):
@@ -314,6 +328,20 @@ class LocalFileManifest(LocalManifest):
             size=0,
             blocks=blocks,
         )
+
+    def to_stats(self):
+        # General stats
+        stats = {
+            "id": self.id,
+            "created": self.created,
+            "updated": self.updated,
+            "base_version": self.base_version,
+            "is_placeholder": self.is_placeholder,
+            "need_sync": self.need_sync,
+            "type": "file",
+            "size": self.size,
+        }
+        return stats
 
     # Properties
 
