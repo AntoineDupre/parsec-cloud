@@ -133,6 +133,7 @@ def handle_error(func):
     @functools.wraps(func)
     def wrapper(self, arg, *args, **kwargs):
         path = arg.path if isinstance(arg, (OpenedFile, OpenedFolder)) else _winpath_to_parsec(arg)
+        logger.warning(f"op: {func.__name__} {path}")
         with translate_error(self.event_bus, operation, path):
             return func.__get__(self)(arg, *args, **kwargs)
 
